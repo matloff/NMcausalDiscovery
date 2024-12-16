@@ -1,4 +1,7 @@
 
+# simple variant of pc algorithm, but with the big distinction that
+# p-values and testing aren't used; users just set thresholds
+
 # to add:
 
 # declare "output" variables, arrows only lead in, e.g. wageinc
