@@ -1,4 +1,8 @@
 
+# to add:
+
+# declare "output" variables, arrows only lead in, e.g. wageinc
+
 # arguments
 
 # data: a date frame or equivalent, all cols factors
