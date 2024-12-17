@@ -4,16 +4,32 @@
 
 # arguments
 
-# data: a date frame or equivalent, all cols factors
-# abThresh: if corr(a,b) < this value, then delete ab arc
-# abcThresh: if corr(a,b|c) < this value, then delete ab arc
+# data: a date frame or equivalent, all cols factors; if continuous
+#   numeric, call regtools::discretize, e.g. discretize(x,nbins=5)
+# abThresh: if corr(a,b) < this value, then delete ab arc; generally
+#    small values work better, say 0.01
+# abcThresh: if corr(a,b|c) < this value, then delete ab arc; again,
+#    small values generally better
+# myCorrABC: conditional correlation ftn
+# myCorrAB: unconditional correlation ftn
+# outputVars: should have incoming arcs, no outgoing
+# inputVars: should have outgoing arcs, no incoming, e.g.
+#    avoid occupation "causing" gender
+# permuteCols: one criticism of the pc alg is dependency on col order,
+# autoPlot: if TRUE, plot without first saving
+
+# needs
+
+#  infortheory, for default corr ftn
+#  igraph, for graphing
 
 pcThresh <- function(data,abThresh,abcThresh,
    myCorrABC='condinformation', 
    myCorrAB=myCorrABC,
    outputVars=NULL,
    inputVars=NULL,
-   permuteCols=FALSE)
+   permuteCols=FALSE,
+   autoPlot=TRUE)
 {
    if (myCorrAB == 'condinformation') myCorrAB <- condinformation
    if (myCorrABC == 'condinformation') myCorrABC <- condinformation
@@ -83,14 +99,14 @@ pcThresh <- function(data,abThresh,abcThresh,
    diag(adj) <- 0
    colnames(adj) <- names(data)
 
+   if (autoPlot) {
+      require(igraph)
+      g <- graph_from_adjacency_matrix(w,mode='directed')
+      plot(g)
+   }
+
    adj
 
 }
 
-# forms a list l, such that l[[[i]] consists of the indices in an R
-# factor f for which f == i, the i-th level of f
-rowsByValue <- function(f)
-{
-   lapply(levels(f),function(lvl) which(f == lvl))
-}
 
