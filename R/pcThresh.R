@@ -117,7 +117,7 @@ realToDiscreteFactor <- defmacro(d,
       for (i in cols) {
          di <- d[,i]
          if (inherits(di,'numeric') || inherits(di,'integer')) {
-            d[,i] <- dscz(di)
+            d[,i] <- dscz(di,nbins=5)
          }
       }
    }
