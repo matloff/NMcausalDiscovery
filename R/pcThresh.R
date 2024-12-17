@@ -63,7 +63,7 @@ pcThresh <- function(data,abThresh,abcThresh,
 
    # want "causation" to make sense, e.g. gender may cause occupation
    # but not vice versa
-   if (!is.null(outputVars)) {
+   if (!is.null(inputVars)) {
       # these nodes should not lead to anything 
       adj[,inputVars] <- 0
    }
@@ -86,7 +86,7 @@ pcThresh <- function(data,abThresh,abcThresh,
       }
 
    # delete conditionally weak links
-   for (k in 1:n) {  # possible elbow in forks
+   for (k in 1:n) {  # possible confounder in forks
       for (i in setdiff(1:n,k)) {
          for (j in setdiff(1:n,c(k,i))) {
             # need i < j, to avoid "He's checking it twice" :-)
