@@ -18,10 +18,10 @@
 # permuteCols: one criticism of the pc alg is dependency on col order,
 # autoPlot: if TRUE, plot without first saving
 
-# needs
+# needs pkgs 
 
-#  infortheory, for default corr ftn
-#  igraph, for graphing
+#    infotheory, for default corr ftn and 'discretize'
+#    igraph, for graphing
 
 pcThresh <- function(data,abThresh,abcThresh,
    myCorrABC='condinformation', 
@@ -33,10 +33,12 @@ pcThresh <- function(data,abThresh,abcThresh,
 {
    if (myCorrAB == 'condinformation') myCorrAB <- condinformation
    if (myCorrABC == 'condinformation') myCorrABC <- condinformation
-
    n <- ncol(data)
-
    varNames <- names(data)
+
+   # the default and like other corr functions of interest here will
+   # need all cols as factors; call discretize
+
    if (permuteCols) {
       newColNums <- sample(1:n,n,replace=FALSE)
       data <- data[,newColNums]
@@ -48,8 +50,7 @@ pcThresh <- function(data,abThresh,abcThresh,
      newColNames <- varNames
    }
 
-
-
+   # adjacency matrix
    adj <- matrix(1,nrow=n,ncol=n)
    rownames(adj) <- newColNames
    colnames(adj) <- rownames(adj)
@@ -63,7 +64,7 @@ pcThresh <- function(data,abThresh,abcThresh,
    # want "causation" to make sense, e.g. gender may cause occupation
    # but not vice versa
    if (!is.null(outputVars)) {
-      # these nodes should not to anything 
+      # these nodes should not lead to anything 
       adj[,inputVars] <- 0
    }
 
@@ -84,10 +85,11 @@ pcThresh <- function(data,abThresh,abcThresh,
          if (tmp < abThresh) adj[i,j] <- 0
       }
 
-   # delete conditionally weak link
-   for (k in 1:n) {
+   # delete conditionally weak links
+   for (k in 1:n) {  # possible elbow in forks
       for (i in setdiff(1:n,k)) {
          for (j in setdiff(1:n,c(k,i))) {
+            # need i < j, to avoid "He's checking it twice" :-)
             if (i < j && adj[k,i] && adj[k,j] && adj[i,j]) {
                tmp <- myCorrABC(data[,i],data[,j],data[,k])
                if (tmp < abThresh) adj[i,j] <- 0
@@ -97,7 +99,6 @@ pcThresh <- function(data,abThresh,abcThresh,
    }
 
    diag(adj) <- 0
-   colnames(adj) <- names(data)
 
    if (autoPlot) {
       require(igraph)
@@ -108,5 +109,18 @@ pcThresh <- function(data,abThresh,abcThresh,
    adj
 
 }
+
+realToDiscreteFactor <- defmacro(d,
+   expr={
+      dscz <- infotheo::discretize
+      cols <- 1:ncol(d)
+      for (i in cols) {
+         di <- d[,i]
+         if (inherits(di,'numeric') || inherits(di,'integer')) {
+            d[,i] <- dscz(di)
+         }
+      }
+   }
+)
 
 
