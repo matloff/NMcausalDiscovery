@@ -89,8 +89,7 @@ pcThresh <- function(data,abThresh,abcThresh,
    for (k in 1:n) {  # possible confounder in forks
       for (i in setdiff(1:n,k)) {
          for (j in setdiff(1:n,c(k,i))) {
-            # need i < j, to avoid "He's checking it twice" :-)
-            if (i < j && adj[k,i] && adj[k,j] && adj[i,j]) {
+            if (adj[k,i] && adj[k,j] && adj[i,j]) {
                tmp <- myCorrABC(data[,i],data[,j],data[,k])
                if (tmp < abThresh) adj[i,j] <- 0
             }
@@ -102,7 +101,7 @@ pcThresh <- function(data,abThresh,abcThresh,
 
    if (autoPlot) {
       require(igraph)
-      g <- graph_from_adjacency_matrix(w,mode='directed')
+      g <- graph_from_adjacency_matrix(adj,mode='directed')
       plot(g)
    }
 
@@ -110,13 +109,15 @@ pcThresh <- function(data,abThresh,abcThresh,
 
 }
 
+# discretizes all numeric/integer columns of d, in-place
 realToDiscreteFactor <- defmacro(d,
    expr={
       dscz <- infotheo::discretize
       cols <- 1:ncol(d)
       for (i in cols) {
          di <- d[,i]
-         if (inherits(di,'numeric') || inherits(di,'integer')) {
+         if (inherits(di,'integer')) di <- as.numeric(di)
+         if (inherits(di,'numeric')) {
             d[,i] <- dscz(di,nbins=5)
          }
       }
