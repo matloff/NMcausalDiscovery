@@ -10,8 +10,6 @@
 #    small values work better, say 0.01
 # abcThresh: if corr(a,b|c) < this value, then delete ab arc; again,
 #    small values generally better
-# myCorrABC: conditional correlation ftn
-# myCorrAB: unconditional correlation ftn
 # outputVars: should have incoming arcs, no outgoing
 # inputVars: should have outgoing arcs, no incoming, e.g.
 #    avoid occupation "causing" gender
@@ -22,17 +20,16 @@
 
 #    infotheory, for default corr ftn and 'discretize'
 #    igraph, for graphing
+#    gtools, for writing macros
+#    LogLinFit, for log-linear model (https://github.com/matloff/LogLinFit) 
 
 pcThresh <- function(data,abThresh,abcThresh,
-   myCorrABC='condinformation', 
-   myCorrAB=myCorrABC,
    outputVars=NULL,
    inputVars=NULL,
    permuteCols=FALSE,
-   autoPlot=TRUE)
+   autoPlot=TRUE,
+   logLinDegree=NULL)
 {
-   if (myCorrAB == 'condinformation') myCorrAB <- condinformation
-   if (myCorrABC == 'condinformation') myCorrABC <- condinformation
    n <- ncol(data)
    varNames <- names(data)
 
@@ -49,6 +46,17 @@ pcThresh <- function(data,abThresh,abcThresh,
      newColNums <- 1:n
      newColNames <- varNames
    }
+
+   # use log-linear model?
+   if (!is.null(logLinDegree)) {
+      require(LogLinFit)
+      useLogLin <- TRUE
+      llOut <- llFit(data,logLinDegree)
+      fitDF <- as.data.table(llOut$ary)
+      # convert from cell frequences to cell probabilities
+      tmp <- fitDF$value
+      fitDF$value <- 1/sum(tmp) * tmp
+   } else useLogLin <- FALSE
 
    # adjacency matrix
    adj <- matrix(1,nrow=n,ncol=n)
@@ -81,7 +89,8 @@ pcThresh <- function(data,abThresh,abcThresh,
    # delete unconditionally weak links
    for (i in 1:n) 
       for (j in setdiff(1:n,i))  {
-         tmp <- myCorrAB(data[,i],data[,j])
+         ### tmp <- myCorrAB(data[,i],data[,j])
+         tmp <- getMutInf(i,j)
          if (tmp < abThresh) adj[i,j] <- 0
       }
 
@@ -90,7 +99,8 @@ pcThresh <- function(data,abThresh,abcThresh,
       for (i in setdiff(1:n,k)) {
          for (j in setdiff(1:n,c(k,i))) {
             if (adj[k,i] && adj[k,j] && adj[i,j]) {
-               tmp <- myCorrABC(data[,i],data[,j],data[,k])
+               ### tmp <- myCorrABC(data[,i],data[,j],data[,k])
+               tmp <- getCondMutInf(i,j,k)
                if (tmp < abThresh) adj[i,j] <- 0
             }
          }
@@ -123,5 +133,25 @@ realToDiscreteFactor <- defmacro(d,
       }
    }
 )
+
+get1DCellProbs <- defmacro(dummy, # a macro needs an argument
+   expr={
+   x
+   }
+)
+
+getMutInf <- defmacro(i,j,
+   expr={
+      tmp <- if (!useLogLin)mutinformation(data[,i],data[,j]) else
+         theoretMutInfo(i,j)
+   }
+)
+
+theoretMutInfo <- defmacro(i,j,
+   expr={
+     x
+   }
+)
+
 
 
