@@ -134,9 +134,16 @@ realToDiscreteFactor <- defmacro(d,
    }
 )
 
-get1DCellProbs <- defmacro(dummy, # a macro needs an argument
+# find 1-D, 2-D and 3-D marginals of the estimated cell probabilities in
+# log-lin output
+getMarginal <- defmacro(dummy, # a macro needs an argument
    expr={
-   x
+      nFactors <- ncol(fitDF) - 1
+      # 1-D
+      margs1D <- list()
+      for (m in 1:nFactors) margs1D[[m]] <- tapply(fitDF$value,fitDF[,..m],sum)
+   
+   
    }
 )
 
