@@ -52,7 +52,9 @@ pcThresh <- function(data,abThresh,abcThresh,
       require(LogLinFit)
       useLogLin <- TRUE
       llOut <- llFit(data,logLinDegree)
+      # as.data.frame doesn't do the right thing directly
       fitDF <- as.data.table(llOut$ary)
+      fitDF <- as.data.frame(fitDF)
       # convert from cell frequences to cell probabilities
       tmp <- fitDF$value
       fitDF$value <- 1/sum(tmp) * tmp
@@ -134,15 +136,26 @@ realToDiscreteFactor <- defmacro(d,
    }
 )
 
+NO, NO PRE-COMPUTATIN; DO ALL FROM SCRATCH EACH TIME; SLOW BUT MUCH EASIER
+
 # find 1-D, 2-D and 3-D marginals of the estimated cell probabilities in
-# log-lin output
+# log-lin output; code not very efficient
 getMarginal <- defmacro(dummy, # a macro needs an argument
    expr={
       nFactors <- ncol(fitDF) - 1
       # 1-D
-      margs1D <- list()
+      margs1D <- vector(length=nFactors)
       for (m in 1:nFactors) margs1D[[m]] <- tapply(fitDF$value,fitDF[,..m],sum)
-   
+      margs2D <- matrix(nr
+      # prep to loop over all i,j
+      u <- combn(5,2)
+      udf <- as.data.frame(u)
+      for (ij in udf) {
+         i <- ij[1]; j <- ij[2]
+         margs2D[i,j]
+      }
+
+
    
    }
 )
