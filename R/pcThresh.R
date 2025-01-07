@@ -136,28 +136,38 @@ realToDiscreteFactor <- defmacro(d,
    }
 )
 
-NO, NO PRE-COMPUTATIN; DO ALL FROM SCRATCH EACH TIME; SLOW BUT MUCH EASIER
-
 # find 1-D, 2-D and 3-D marginals of the estimated cell probabilities in
 # log-lin output; code not very efficient
-getMarginal <- defmacro(dummy, # a macro needs an argument
-   expr={
-      nFactors <- ncol(fitDF) - 1
-      # 1-D
-      margs1D <- vector(length=nFactors)
-      for (m in 1:nFactors) margs1D[[m]] <- tapply(fitDF$value,fitDF[,..m],sum)
-      margs2D <- matrix(nr
-      # prep to loop over all i,j
-      u <- combn(5,2)
-      udf <- as.data.frame(u)
-      for (ij in udf) {
-         i <- ij[1]; j <- ij[2]
-         margs2D[i,j]
-      }
+# getMarginal <- defmacro(dummy, # a macro needs an argument
+#    expr={
+#       nFactors <- ncol(fitDF) - 1
+#       # 1-D
+#       margs1D <- vector(length=nFactors)
+#       for (m in 1:nFactors) margs1D[[m]] <- tapply(fitDF$value,fitDF[,..m],sum)
+#       margs2D <- matrix(nr
+#       # prep to loop over all i,j
+#       u <- combn(5,2)
+#       udf <- as.data.frame(u)
+#       for (ij in udf) {
+#          i <- ij[1]; j <- ij[2]
+#          margs2D[i,j]
+#       }
+# 
+# 
+#    
+#    }
+# )
 
+get1Dmargs <- defmacro(i,
+  expr={
+    margs1D <- tapply(fitDF$value,fitDF[,i],sum)
+  }
+)
 
-   
-   }
+get2Dmargs <- defmacro(i,j,
+  expr={
+    margs2D <- tapply(fitDF$value,list(fitDF[,i],fitDF[,j]),sum)
+  }
 )
 
 getMutInf <- defmacro(i,j,
@@ -167,11 +177,17 @@ getMutInf <- defmacro(i,j,
    }
 )
 
-theoretMutInfo <- defmacro(i,j,
+getCondMutInf <- defmacro(i,j,k,
    expr={
-     x
+      tmp <- if (!useLogLin)mutinformation(data[,i],data[,j]) else
+         theoretMutInfo(i,j)
    }
 )
 
-
+theoretMutInfo <- function(i,j) 
+{
+   if (!useLogLin) {
+      mutinformation(data[,i],data[,j])
+   }
+}
 
